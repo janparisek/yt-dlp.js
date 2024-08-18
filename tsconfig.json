@@ -16,6 +16,7 @@
     "target": "esnext",
 
     // Output
+    "declaration": true,
     "outDir": "dist/"
   }
 }
