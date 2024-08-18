@@ -1,0 +1,11 @@
+# Debug files
+/debug/
+
+# Dependency directories
+/node_modules/
+
+# Secret stuff
+/token.json
+
+# Binaries
+/bin/
