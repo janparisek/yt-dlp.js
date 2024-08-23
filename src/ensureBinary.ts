@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import { exec } from "node:child_process";
+import path from "node:path";
 
 // Figure out what file to search for
 const architecture = process.arch;
@@ -40,7 +41,9 @@ async function ensureExecutable(build: string) {
   const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${build}`;
   const response = await fetch(url);
   const buffer = await response.arrayBuffer();
-  await fs.mkdir("./bin", { recursive: true });
+
+  const packageDir = path.resolve(__dirname, "./bin");
+  await fs.mkdir(packageDir, { recursive: true });
   await fs.writeFile(build, Buffer.from(buffer));
 
   // Make the binary executable
@@ -68,7 +71,7 @@ async function update(ytdlp: string) {
 }
 
 const executableName = getExecutableName();
-const executablePath = `./bin/${executableName}`;
+const executablePath = path.resolve(__dirname, "./bin", executableName);
 await ensureExecutable(executablePath);
 
 export { update, executablePath };
