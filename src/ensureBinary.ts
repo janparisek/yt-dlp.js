@@ -1,6 +1,9 @@
 import fs from "node:fs/promises";
 import { exec } from "node:child_process";
-import path from "node:path";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Figure out what file to search for
 const architecture = process.arch;
@@ -25,31 +28,34 @@ function getExecutableName() {
   return build;
 }
 
-async function ensureExecutable(build: string) {
+async function ensureExecutable(executableName: string): Promise<string> {
   // Check if the binary exists
+  const executableDirectory = path.resolve(__dirname, "../bin");
+  const executablePath = path.resolve(executableDirectory, executableName);
+
   const binaryExists = await fs
-    .access(build)
+    .access(executablePath)
     .then(() => true)
     .catch(() => false);
 
   if (binaryExists) {
-    return;
+    return executablePath;
   }
   console.log("Binary not found, downloading...");
 
   // Download the binary
-  const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${build}`;
+  const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${executableName}`;
   const response = await fetch(url);
   const buffer = await response.arrayBuffer();
 
-  const packageDir = path.resolve(__dirname, "./bin");
-  await fs.mkdir(packageDir, { recursive: true });
-  await fs.writeFile(build, Buffer.from(buffer));
+  await fs.mkdir(executableDirectory, { recursive: true });
+  await fs.writeFile(executablePath, Buffer.from(buffer));
 
   // Make the binary executable
   if (platform !== "win32") {
-    await fs.chmod(build, 0o755);
+    await fs.chmod(executablePath, 0o755);
   }
+  return executablePath;
 }
 
 async function update(ytdlp: string) {
@@ -71,7 +77,7 @@ async function update(ytdlp: string) {
 }
 
 const executableName = getExecutableName();
-const executablePath = path.resolve(__dirname, "./bin", executableName);
-await ensureExecutable(executablePath);
+const executablePath = await ensureExecutable(executableName);
+console.log(executablePath);
 
 export { update, executablePath };
