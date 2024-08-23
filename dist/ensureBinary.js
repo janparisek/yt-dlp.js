@@ -36,6 +36,10 @@ async function ensureExecutable(build) {
     const buffer = await response.arrayBuffer();
     await fs.mkdir("./bin", { recursive: true });
     await fs.writeFile(build, Buffer.from(buffer));
+    // Make the binary executable
+    if (platform !== "win32") {
+        await fs.chmod(build, 0o755);
+    }
 }
 async function update(ytdlp) {
     console.log("Updating yt-dlp...");
